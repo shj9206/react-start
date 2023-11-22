@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useFetcher } from "react-router-dom";
 import PropTypes from "prop-types";
 
@@ -6,11 +5,9 @@ export default function Favorite({ contact }) {
   const fetcher = useFetcher();
 
   // Initialize state based on contact.favorite
-  const [favorite, setFavorite] = useState(contact.favorite);
-
-  // Update state based on fetcher.formData
+  let favorite = contact.favorite;
   if (fetcher.formData) {
-    setFavorite(fetcher.formData.get("favorite") === "true");
+    favorite = fetcher.formData.get("favorite") === "true";
   }
 
   return (
