@@ -8,7 +8,7 @@ import {
   useSubmit,
 } from "react-router-dom";
 import { useEffect } from "react";
-import { getContacts, createContact } from "../contacts";
+import { getContacts, createContact } from "@/contacts";
 
 export async function action() {
   const contact = await createContact();
