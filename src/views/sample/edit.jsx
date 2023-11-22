@@ -1,6 +1,6 @@
 import { Form, useLoaderData, redirect, useNavigate } from "react-router-dom";
 
-import { updateContact } from "@/contacts";
+import { updateContact } from "@/utils/contacts";
 
 export const action =
   (queryClient) =>

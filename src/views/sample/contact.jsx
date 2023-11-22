@@ -1,6 +1,6 @@
 import { Form, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getContact, updateContact } from "@/contacts";
+import { getContact, updateContact } from "@/utils/contacts";
 import Favorite from "@/components/sample/Favorite";
 
 const contactDetailQuery = (id) => ({

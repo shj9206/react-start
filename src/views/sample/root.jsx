@@ -7,7 +7,7 @@ import {
   useSubmit,
 } from "react-router-dom";
 import { useDebounce } from "rooks";
-import { createContact, getContacts } from "@/contacts";
+import { createContact, getContacts } from "@/utils/contacts";
 import { useQuery, useIsFetching } from "@tanstack/react-query";
 
 const contactListQuery = (q) => ({

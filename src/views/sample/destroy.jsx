@@ -1,5 +1,5 @@
 import { redirect } from "react-router-dom";
-import { deleteContact } from "@/contacts";
+import { deleteContact } from "@/utils/contacts";
 
 export const action =
   (queryClient) =>
