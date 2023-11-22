@@ -1,66 +1,76 @@
 import {
   Outlet,
-  NavLink,
   useLoaderData,
   Form,
-  redirect,
+  NavLink,
   useNavigation,
   useSubmit,
 } from "react-router-dom";
-import { useEffect } from "react";
-import { getContacts, createContact } from "@/contacts";
+import { useDebounce } from "rooks";
 
-export async function action() {
+import { createContact, getContacts } from "@/contacts";
+import { useQuery, useIsFetching } from "@tanstack/react-query";
+
+const contactListQuery = (q) => ({
+  queryKey: ["contacts", "list", q ?? "all"],
+  queryFn: () => getContacts(q),
+});
+
+export const loader =
+  (queryClient) =>
+  async ({ request }) => {
+    const url = new URL(request.url);
+    const q = url.searchParams.get("q");
+    if (!queryClient.getQueryData(contactListQuery(q).queryKey)) {
+      await queryClient.fetchQuery(contactListQuery(q));
+    }
+    return { q };
+  };
+
+export const action = (queryClient) => async () => {
   const contact = await createContact();
-  return redirect(`/contacts/${contact.id}/edit`);
-}
-export async function loader({ request }) {
-  const url = new URL(request.url);
-  const q = url.searchParams.get("q");
-  const contacts = await getContacts(q);
-  return { contacts, q };
-}
+  queryClient.invalidateQueries({ queryKey: ["contacts", "list"] });
+  return contact;
+};
 
 export default function Root() {
-  const { contacts, q } = useLoaderData();
+  const { q } = useLoaderData();
+  const { data: contacts } = useQuery(contactListQuery(q));
+  const searching = useIsFetching({ queryKey: ["contacts", "list"] }) > 0;
   const navigation = useNavigation();
   const submit = useSubmit();
-  const searching =
-    navigation.location &&
-    new URLSearchParams(navigation.location.search).has("q");
-  useEffect(() => {
-    document.getElementById("q").value = q;
-  }, [q]);
+
+  const debouncedSubmit = useDebounce(submit, 500);
+
   return (
     <>
       <div id="sidebar">
         <h1>React Router Contacts</h1>
         <div>
-          <Form id="search-form" role="search">
+          <form id="search-form" role="search">
             <input
               id="q"
-              className={searching ? "loading" : ""}
               aria-label="Search contacts"
               placeholder="Search"
               type="search"
               name="q"
+              key={q}
+              autoFocus
               defaultValue={q}
+              className={searching ? "loading" : ""}
               onChange={(event) => {
-                const isFirstSearch = q == null;
-                submit(event.currentTarget.form, {
-                  replace: !isFirstSearch,
-                });
+                debouncedSubmit(event.currentTarget.form);
               }}
             />
             <div id="search-spinner" aria-hidden hidden={!searching} />
             <div className="sr-only" aria-live="polite"></div>
-          </Form>
+          </form>
           <Form method="post">
             <button type="submit">New</button>
           </Form>
         </div>
         <nav>
-          {contacts.length ? (
+          {contacts ? (
             <ul>
               {contacts.map((contact) => (
                 <li key={contact.id}>

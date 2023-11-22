@@ -1,6 +1,8 @@
 import * as ReactDOM from "react-dom/client";
 import store from "@/store";
 import { Provider } from "react-redux";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
   createBrowserRouter,
   RouterProvider,
@@ -20,6 +22,13 @@ import { action as destroyAction } from "@/views/sample/destroy";
 import Index from "@/views/sample/index";
 import ErrorPage from "@/views/sample/error-page";
 import StoreSampe from "@/views/storeSample/storeSample";
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 10,
+    },
+  },
+});
 const router = createBrowserRouter([
   {
     path: "/",
@@ -29,25 +38,25 @@ const router = createBrowserRouter([
     path: "/views/sample",
     element: <Root />,
     errorElement: <ErrorPage />,
-    loader: rootLoader,
-    action: rootAction,
+    loader: rootLoader(queryClient),
+    action: rootAction(queryClient),
     children: [
       { index: true, element: <Index /> },
       {
         path: "/views/sample/contacts/:contactId",
         element: <Contact />,
-        loader: contactLoader,
-        action: contactAction,
+        loader: contactLoader(queryClient),
+        action: contactAction(queryClient),
       },
       {
         path: "/views/sample/contacts/:contactId/edit",
         element: <EditContact />,
-        loader: contactLoader,
-        action: editAction,
+        loader: contactLoader(queryClient),
+        action: editAction(queryClient),
       },
       {
         path: "/views/sample/contacts/:contactId/destroy",
-        action: destroyAction,
+        action: destroyAction(queryClient),
         errorElement: <div>Oops! There was an error.</div>,
       },
       { path: "/views/sample/store", element: <StoreSampe /> },
@@ -56,7 +65,10 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <Provider store={store}>
-    <RouterProvider router={router} />
-  </Provider>
+  <QueryClientProvider client={queryClient}>
+    <Provider store={store}>
+      <RouterProvider router={router} />
+      <ReactQueryDevtools position="bottom-right" />
+    </Provider>
+  </QueryClientProvider>
 );

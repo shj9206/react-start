@@ -1,25 +1,59 @@
-import { Form, useLoaderData } from "react-router-dom";
-
+import { Form, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { getContact, updateContact } from "@/contacts";
 import Favorite from "@/components/sample/Favorite";
-export async function loader({ params }) {
-  const contact = await getContact(params.contactId);
-  if (!contact) {
-    throw new Response("", {
-      status: 404,
-      statusText: "Not Found",
+
+const contactDetailQuery = (id) => ({
+  queryKey: ["contacts", "detail", id],
+  queryFn: async () => {
+    const contact = await getContact(id);
+    if (!contact) {
+      throw new Response("", {
+        status: 404,
+        statusText: "Not Found",
+      });
+    }
+    return contact;
+  },
+});
+export const loader =
+  (queryClient) =>
+  async ({ params }) => {
+    const query = contactDetailQuery(params.contactId);
+    return (
+      queryClient.getQueryData(query.queryKey) ??
+      (await queryClient.fetchQuery(query))
+    );
+  };
+// export async function loader({ params }) {
+//   const contact = await getContact(params.contactId);
+//   if (!contact) {
+//     throw new Response("", {
+//       status: 404,
+//       statusText: "Not Found",
+//     });
+//   }
+//   return { contact };
+// }
+export const action =
+  (queryClient) =>
+  async ({ request, params }) => {
+    let formData = await request.formData();
+    const contact = await updateContact(params.contactId, {
+      favorite: formData.get("favorite") === "true",
     });
-  }
-  return { contact };
-}
-export async function action({ request, params }) {
-  let formData = await request.formData();
-  return updateContact(params.contactId, {
-    favorite: formData.get("favorite") === "true",
-  });
-}
+    await queryClient.invalidateQueries({ queryKey: ["contacts"] });
+    return contact;
+  };
+// export async function action({ request, params }) {
+//   let formData = await request.formData();
+//   return updateContact(params.contactId, {
+//     favorite: formData.get("favorite") === "true",
+//   });
+// }
 export default function Contact() {
-  const { contact } = useLoaderData();
+  const params = useParams();
+  const { data: contact } = useQuery(contactDetailQuery(params.contactId));
 
   return (
     <div id="contact">
