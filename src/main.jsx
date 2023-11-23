@@ -8,6 +8,7 @@ import {
   RouterProvider,
   Navigate,
 } from "react-router-dom";
+import "@/utils/i18n";
 import "./index.css";
 import Root, {
   loader as rootLoader,
@@ -22,6 +23,7 @@ import { action as destroyAction } from "@/views/sample/destroy";
 import Index from "@/views/sample/index";
 import ErrorPage from "@/views/sample/error-page";
 import StoreSampe from "@/views/storeSample/storeSample";
+import LocaleSample from "@/views/localeSample/localeSample";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -60,6 +62,7 @@ const router = createBrowserRouter([
         errorElement: <div>Oops! There was an error.</div>,
       },
       { path: "/views/sample/store", element: <StoreSampe /> },
+      { path: "/views/sample/locale", element: <LocaleSample /> },
     ],
   },
 ]);
